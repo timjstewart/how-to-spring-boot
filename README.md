@@ -43,6 +43,8 @@ Put the following in your pom.xml file.
                 <scope>test</scope>
             </dependency>
 
+            <!-- enables reloading web application when change is
+                 detected on the CLASSPATH. -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-devtools</artifactId>
@@ -314,3 +316,64 @@ blog.  I prefer title so let's just make all references to name refer to
 title.
 
 I had to restart the spring app manually.
+
+# Writing some tests
+
+## Create the Test file
+
+The following goes into src/test/java/blogs/BlogControllerTest.java
+
+    package blogs;
+
+    import static org.assertj.core.api.Assertions.assertThat;
+
+    import org.junit.Test;
+    import org.junit.runner.RunWith;
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.boot.test.context.SpringBootTest;
+    import org.springframework.test.context.junit4.SpringRunner;
+	import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+
+    @RunWith(SpringRunner.class)
+	@SpringBootTest(webEnvironment=WebEnvironment.RANDOM_PORT)
+    public class BlogControllerTest {
+
+        @Autowired
+        private BlogController controller;
+
+        @Test
+        public void contexLoads() throws Exception {
+            assertThat(controller).isNotNull();
+        }
+    }
+
+## Run the tests
+
+    $ mvn test
+
+The test should pass.
+
+# Write a test that calls the controller
+
+For more information on the TestRestTemplate, read the [JavaDocs](http://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/test/web/client/TestRestTemplate.html).
+
+Add the following import to src/test/java/blogs/BlogControllerTest.java:
+
+    import org.springframework.boot.test.web.client.TestRestTemplate;
+
+In the same file add the following instance variable:
+
+    @Autowired
+	private TestRestTemplate restTemplate;
+
+And add a test like the following:
+
+    @Test
+    public void canCreateBlog() throws Exception {
+	   assertThat(restTemplate.postForEntity(
+	            "/blogs",
+                new Blog("title", "description"),
+                Blog.class
+		).getBody().getTitle())
+			.contains("title");
+    }
