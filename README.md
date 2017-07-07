@@ -378,3 +378,40 @@ And add a test like the following:
 	   final Blog blog = restTemplate.postForEntity("/blogs", new Blog("title", "description"), Blog.class).getBody();
        assertThat(blog.getTitle()).isEqualTo("title");
     }
+
+# Add a Scheduled Task
+
+Just to keep things embarrassingly simple, lets add a scheduled task that every 5 seconds logs, "Hello World!".
+
+## Create the Scheduled Task Component
+
+Create a file named src/main/java/blogs/ScheduledTask.java and put the following in it:
+
+    package blogs;
+
+    import org.slf4j.Logger;
+    import org.slf4j.LoggerFactory;
+    import org.springframework.scheduling.annotation.Scheduled;
+    import org.springframework.stereotype.Component;
+
+    @Component
+    public class ScheduledTask {
+
+        private static final Logger log = LoggerFactory.getLogger(ScheduledTask.class);
+
+        @Scheduled(fixedRate = 5000)
+        public void sayHelloWorld() {
+            log.info("Hello, World!");
+        }
+    }
+
+## Enable Scheduling
+
+Add the following import to Application.java
+
+    import org.springframework.scheduling.annotation.EnableScheduling;
+
+Add the following annotation to Application's class.
+
+    @EnableScheduling
+
