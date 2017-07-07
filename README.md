@@ -44,6 +44,16 @@ root of your project directory.
                 <scope>test</scope>
             </dependency>
 
+            <!-- For accessing MongoDB -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-data-rest</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-data-mongodb</artifactId>
+            </dependency>
+
             <!-- enables reloading web application when change is
                  detected on the CLASSPATH. -->
             <dependency>
@@ -428,3 +438,67 @@ Add the following parameters to the index() method:
 
     @RequestParam(value = "offset", defaultValue = "0") int offset,
     @RequestParam(value = "limit",  defaultValue = "10") int limit
+
+# Using specific mapping annotations
+
+Instead of using RequestMapping and having to specify the HTTP method you can use method-specific mapping annotations like:
+
+- PutMapping
+- PostMapping
+
+Delete the following imports from BlogsController.java:
+
+    import org.springframework.web.bind.annotation.RequestMapping;
+    import org.springframework.web.bind.annotation.RequestMethod;
+
+and add the following imports to BlogsController.java:
+
+    import org.springframework.web.bind.annotation.GetMapping;
+    import org.springframework.web.bind.annotation.PostMapping;
+
+Then replace the previous RequestMapping annotations with the following annotations:
+
+    @GetMapping("/blogs")
+    @PostMapping("/blogs")
+    @GetMapping("/blogs/{blogTitle}")
+
+# Adding MongoDB Access (Work in Progress)
+
+I had to break the connection between Blog and its base class
+ResourceSupport for this to work.  I was getting Jackson serialization errors.
+
+I think I'll return to this section later... I'm also
+concerned that I won't be able to inject any business logic
+into the routes.  It seems like this technique just exposes a
+MongoDB collection.
+
+Add this import to Blog.java
+
+    import org.springframework.data.annotation.Id;
+
+Add an id field to Blog.java:
+
+	@Id private String id;
+
+In a new file BlogRepository.java add the following:
+
+    package blogs;
+
+    import java.util.List;
+
+    import org.springframework.data.mongodb.repository.MongoRepository;
+    import org.springframework.data.repository.query.Param;
+    import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+
+    @RepositoryRestResource(collectionResourceRel = "blogs", path = "blogs2")
+    public interface BlogRepository extends MongoRepository<Blog, String> {
+        List<Blog> findByTitle(@Param("title") String title);
+    }
+
+# To Do
+
+Read and incorporate these guides into these notes:
+
+- https://spring.io/guides/gs/consuming-rest/
+- https://spring.io/guides/gs/uploading-files/
+- https://spring.io/guides/gs/async-method/
