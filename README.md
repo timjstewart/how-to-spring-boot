@@ -415,3 +415,16 @@ Add the following annotation to Application's class.
 
     @EnableScheduling
 
+Now when you run the web application, every 5 seconds "Hello, World!" will be
+logged at the INFO level.
+
+# Add paging support
+
+Add the following import to the BlogsController.java file:
+
+   import org.springframework.web.bind.annotation.RequestParam;
+
+Add the following parameters to the index() method:
+
+    @RequestParam(value = "offset", defaultValue = "0") int offset,
+    @RequestParam(value = "limit",  defaultValue = "10") int limit
