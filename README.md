@@ -375,10 +375,6 @@ And add a test like the following:
 
     @Test
     public void canCreateBlog() throws Exception {
-	   assertThat(restTemplate.postForEntity(
-	            "/blogs",
-                new Blog("title", "description"),
-                Blog.class
-		).getBody().getTitle())
-			.contains("title");
+	   final Blog blog = restTemplate.postForEntity("/blogs", new Blog("title", "description"), Blog.class).getBody();
+       assertThat(blog.getTitle()).isEqualTo("title");
     }
