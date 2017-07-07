@@ -8,6 +8,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
 
 @RestController
 public class BlogController {
@@ -26,9 +31,9 @@ public class BlogController {
     }
 
     @RequestMapping(path = "/blogs/{blogTitle}", method = RequestMethod.GET)
-    public Blog getBlogByTitle(@PathVariable String blogTitle) {
-        System.out.println(blogTitle);
-        return new Blog(blogTitle, "No description");
+    public HttpEntity<Blog>  getBlogByTitle(@PathVariable String blogTitle) {
+        final Blog blog = new Blog(blogTitle, "No description");
+        blog.add(linkTo(methodOn(BlogController.class).getBlogByTitle(blog.getTitle())).withSelfRel());
+        return new ResponseEntity<>(blog, HttpStatus.OK);
     }
-
 }

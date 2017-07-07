@@ -260,3 +260,57 @@ and get the following output:
         "name":"tim",
         "description":"No description"
     }
+
+# Experiment with HATEOAS
+
+Make Blog derive from Resource Support by adding this import:
+
+    import org.springframework.hateoas.ResourceSupport;
+
+and adding a base class:
+
+    public class Blog extends ResourceSupport {
+
+Add the following imports to BlogController.java:
+
+    import org.springframework.http.HttpEntity;
+    import org.springframework.http.HttpStatus;
+    import org.springframework.http.ResponseEntity;
+
+    import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
+
+Modify the getBlogByTitle() method thusly:
+
+First change the return type to: HttpEntity<Blog>
+
+Add links to the blog object before returning it:
+
+    blog.add(linkTo(methodOn(BlogController.class).getBlogByTitle(blog.getName())).withSelfRel());
+
+Then return the blog object wrapped in a ResponseEntity:
+
+    return new ResponseEntity<>(blog, HttpStatus.OK);
+
+Now the GET request:
+
+    $ curl -XGET http://localhost:8080/blogs/tim
+
+returns the following payload:
+
+    {
+        "name": "tim",
+        "description": "No description",
+        "_links": {
+            "self": {
+                "href": "http://localhost:8080/blogs/tim"
+            }
+        }
+    }
+
+# Cleaning up
+
+We're using title in some places and name in others with respect to the
+blog.  I prefer title so let's just make all references to name refer to
+title.
+
+I had to restart the spring app manually.
