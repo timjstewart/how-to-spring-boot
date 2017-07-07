@@ -9,7 +9,8 @@
 
 # Create the pom.xml file
 
-Put the following in your pom.xml file.
+Create a project directory and put the following in a file named pom.xml in the
+root of your project directory.
 
     <?xml version="1.0" encoding="UTF-8"?>
     <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -49,6 +50,12 @@ Put the following in your pom.xml file.
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-devtools</artifactId>
                 <optional>true</optional>
+            </dependency>
+
+            <!-- HATEOAS Support -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-hateoas</artifactId>
             </dependency>
         </dependencies>
 
@@ -103,8 +110,6 @@ This should go in src/main/java/blogs/Application.java
 
     package blogs;
 
-    import java.util.Arrays;
-
     import org.springframework.boot.CommandLineRunner;
     import org.springframework.boot.SpringApplication;
     import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -135,26 +140,26 @@ Put the following code in src/main/java/blogs/Blog.java
 
     public class Blog {
 
-        private final String name;
+        private final String title;
         private final String description;
 
-        public Blog(String name, String description) {
-            this.name = name;
+        public Blog(String title, String description) {
+            this.title = title;
             this.description = description;
         }
 
-        public String getName() {
-            return name;
+        public String getTitle() {
+            return title;
         }
 
-        public String getdescription() {
+        public String getDescription() {
             return description;
         }
     }
 
 # Make the /blogs route return some Blogs
 
-Modify BlogController.java by adding these imports:
+Modify BlogsController.java by adding these imports:
 
     import java.util.List;
     import java.util.ArrayList;
@@ -176,7 +181,7 @@ Resulting JSON:
 
     [
         {
-            "name": "Bits 'n Bytes",
+            "title": "Bits 'n Bytes",
              "description": "Random musings of a programmer."
         }
     ]
@@ -199,9 +204,9 @@ Then tag the Blog constructor and constructor parameters with JsonCreator and
 JsonProperty annotations:
 
     @JsonCreator
-    public Blog(@JsonProperty("name") String name,
+    public Blog(@JsonProperty("title") String title,
                 @JsonProperty("description") String description) {
-        this.name = name;
+        this.title = title;
         this.description = description;
     }
 
@@ -212,8 +217,8 @@ disambiguate our routes by specifying HTTP methods.  When we add the HTTP
 method specification, we need to explicitly name our path property for the
 RequestMapping annotation.  Add the imports for those annotations:
 
-    import com.fasterxml.jackson.annotation.JsonCreator;
-    import com.fasterxml.jackson.annotation.JsonProperty;
+    import org.springframework.web.bind.annotation.RequestMethod;
+    import org.springframework.web.bind.annotation.RequestBody;
 
 Change the annotation for the index() method to:
 
@@ -231,16 +236,16 @@ Now you can run the following curl command:
 
 
     $ curl -XPOST localhost:8080/blogs -H 'Content-Type: application/json' -d '{
-        "name": "Hi", "description": "Describe me"
+        "title": "Hi", "description": "Describe me"
       }'
 
 and get the following output:
 
-    {"name":"Hi","description":"Describe me"}
+    {"title":"Hi","description":"Describe me"}
 
-# Add a route to return a specific Blog by name:
+# Add a route to return a specific Blog by title:
 
-Add the following import to the Blog.java file:
+Add the following import to the BlogsController.java file:
 
     import org.springframework.web.bind.annotation.PathVariable;
 
@@ -259,13 +264,13 @@ Now you can execute the following curl command to get a specific Blog:
 and get the following output:
 
     {
-        "name":"tim",
+        "title":"tim",
         "description":"No description"
     }
 
 # Experiment with HATEOAS
 
-Make Blog derive from Resource Support by adding this import:
+Make Blog derive from Resource Support by adding this import to Blog.java:
 
     import org.springframework.hateoas.ResourceSupport;
 
@@ -273,7 +278,7 @@ and adding a base class:
 
     public class Blog extends ResourceSupport {
 
-Add the following imports to BlogController.java:
+Add the following imports to BlogsController.java:
 
     import org.springframework.http.HttpEntity;
     import org.springframework.http.HttpStatus;
@@ -287,7 +292,7 @@ First change the return type to: HttpEntity<Blog>
 
 Add links to the blog object before returning it:
 
-    blog.add(linkTo(methodOn(BlogController.class).getBlogByTitle(blog.getName())).withSelfRel());
+    blog.add(linkTo(methodOn(BlogsController.class).getBlogByTitle(blog.getTitle())).withSelfRel());
 
 Then return the blog object wrapped in a ResponseEntity:
 
@@ -300,7 +305,7 @@ Now the GET request:
 returns the following payload:
 
     {
-        "name": "tim",
+        "title": "tim",
         "description": "No description",
         "_links": {
             "self": {
@@ -321,7 +326,7 @@ I had to restart the spring app manually.
 
 ## Create the Test file
 
-The following goes into src/test/java/blogs/BlogControllerTest.java
+The following goes into src/test/java/blogs/BlogsControllerTest.java
 
     package blogs;
 
@@ -336,10 +341,10 @@ The following goes into src/test/java/blogs/BlogControllerTest.java
 
     @RunWith(SpringRunner.class)
 	@SpringBootTest(webEnvironment=WebEnvironment.RANDOM_PORT)
-    public class BlogControllerTest {
+    public class BlogsControllerTest {
 
         @Autowired
-        private BlogController controller;
+        private BlogsController controller;
 
         @Test
         public void contexLoads() throws Exception {
@@ -357,7 +362,7 @@ The test should pass.
 
 For more information on the TestRestTemplate, read the [JavaDocs](http://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/test/web/client/TestRestTemplate.html).
 
-Add the following import to src/test/java/blogs/BlogControllerTest.java:
+Add the following import to src/test/java/blogs/BlogsControllerTest.java:
 
     import org.springframework.boot.test.web.client.TestRestTemplate;
 
