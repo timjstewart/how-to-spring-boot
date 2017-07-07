@@ -174,8 +174,8 @@ Resulting JSON:
 
     [
         {
-            "name":"Bits 'n Bytes",
-             "description":"Random musings of a programmer."
+            "name": "Bits 'n Bytes",
+             "description": "Random musings of a programmer."
         }
     ]
 
@@ -223,4 +223,40 @@ Add the new POST route:
     public Blog createBlog(@RequestBody Blog blog) {
         System.out.println("Blog created");
         return blog;
+    }
+
+Now you can run the following curl command:
+
+
+    $ curl -XPOST localhost:8080/blogs -H 'Content-Type: application/json' -d '{
+        "name": "Hi", "description": "Describe me"
+      }'
+
+and get the following output:
+
+    {"name":"Hi","description":"Describe me"}
+
+# Add a route to return a specific Blog by name:
+
+Add the following import to the Blog.java file:
+
+    import org.springframework.web.bind.annotation.PathVariable;
+
+Add the new route method:
+
+    @RequestMapping(path = "/blogs/{blogTitle}", method = RequestMethod.GET)
+    public Blog getBlogByTitle(@PathVariable String blogTitle) {
+        System.out.println(blogTitle);
+        return new Blog(blogTitle, "No description");
+    }
+
+Now you can execute the following curl command to get a specific Blog:
+
+    $ curl localhost:8080/blogs/tim
+
+and get the following output:
+
+    {
+        "name":"tim",
+        "description":"No description"
     }
